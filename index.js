@@ -1,14 +1,55 @@
 import fastify from 'fastify';
-// see axios doc on how to use it
 import axios from 'axios';
 
 const app = fastify({ logger: true });
 
-app.get('/', async (req, res) => {
+async function getCatFacts() {
+  try {
+    const response = await axios({
+      url: 'https://cat-fact.herokuapp.com/facts/random?amount=3',
+      method: 'GET',
+    });
+    return response.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function getFoxPicture() {
+  try {
+    const response = await axios({
+      url: 'https://randomfox.ca/floof/',
+      method: 'GET',
+    });
+    return response.data.image;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function getHolidays(countryCode) {
+  try {
+    const response = await axios({
+      url: `https://date.nager.at/api/v2/PublicHolidays/2021/${countryCode}`,
+      method: 'GET',
+    });
+    return response.data;
+  } catch (err) {
+    return null;
+  }
+}
+
+app.post('/', async (req, res) => {
+  const countryCode = req.body.countryCode;
+  const catsFact = await getCatFacts();
+  const foxPicture = await getFoxPicture();
+  const holidays = await getHolidays(countryCode);
+
   return {
-    message: `Welcome to Node Babel with ${
-      req.body?.testValue ?? 'no testValue'
-    }`,
+    foxPicture: foxPicture,
+    catFacts: catsFact.map(cat => cat.text),
+    holidays: holidays,
+
   };
 });
 
